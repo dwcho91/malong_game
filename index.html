@@ -16,7 +16,6 @@
       display: flex;
       justify-content: center;
       gap: 40px;
-      position: relative;
     }
 
     #grid {
@@ -76,6 +75,7 @@
   </style>
 </head>
 <body>
+
   <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 10px;">
     <div>
       <h1>🥛 말롱이 우유게임 🥛</h1>
@@ -86,7 +86,6 @@
   </div>
 
   <div id="game-container">
-    <button id="exit-button" style="position: absolute; top: -20px; right: -20px; z-index: 10; font-size: 24px; border: none; background: transparent; cursor: pointer;">❌</button>
     <div id="grid"></div>
   </div>
 
@@ -159,17 +158,6 @@
       }, 1000);
     }
 
-    function startTimer() {
-      const interval = setInterval(() => {
-        timeLeft--;
-        timerEl.textContent = `남은 시간: ${timeLeft}초`;
-        if (timeLeft <= 0) {
-          clearInterval(interval);
-          alert(`게임 종료! 당신의 점수는 ${score}점입니다.`);
-        }
-      }, 1000);
-    }
-
     grid.addEventListener('pointerdown', (e) => {
       const target = e.target.closest('.cell');
       if (!target) return;
@@ -199,64 +187,28 @@
         score += selected.length;
         scoreEl.textContent = `점수: ${score}`;
         selected.forEach(cell => {
-          cell.dataset.value = 0;
-          cell.innerHTML = '';
-        });
+        cell.dataset.value = 0;
+        cell.innerHTML = '';
+      });
       }
       clearSelection();
       isDragging = false;
       lastTouchedIndex = null;
     });
 
-    grid.addEventListener('touchstart', (e) => {
-      const touch = e.touches[0];
-      const target = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.cell');
-      if (!target) return;
-      isDragging = true;
-      startCell = parseInt(target.dataset.index);
-      lastTouchedIndex = startCell;
-      clearSelection();
-    });
-
-    grid.addEventListener('touchmove', (e) => {
-      if (!isDragging) return;
-      const touch = e.touches[0];
-      const target = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.cell');
-      if (!target) return;
-      clearSelection();
-      const endCell = parseInt(target.dataset.index);
-      const selected = selectBox(startCell, endCell);
-      selected.forEach(cell => cell.classList.add('selected'));
-    });
-
-    grid.addEventListener('touchend', (e) => {
-      if (!isDragging) return;
-      const touch = e.changedTouches[0];
-      const target = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.cell');
-      if (!target) return;
-      const endCell = parseInt(target.dataset.index);
-      const selected = selectBox(startCell, endCell);
-      const sum = selected.reduce((acc, cell) => acc + parseInt(cell.dataset.value), 0);
-      if (sum === 10) {
-        showSmile();
-        score += selected.length;
-        scoreEl.textContent = `점수: ${score}`;
-        selected.forEach(cell => {
-          cell.dataset.value = 0;
-          cell.innerHTML = '';
-        });
-      }
-      clearSelection();
-      isDragging = false;
-      lastTouchedIndex = null;
-    });
+    function startTimer() {
+      const interval = setInterval(() => {
+        timeLeft--;
+        timerEl.textContent = `남은 시간: ${timeLeft}초`;
+        if (timeLeft <= 0) {
+          clearInterval(interval);
+          alert(`게임 종료! 당신의 점수는 ${score}점입니다.`);
+        }
+      }, 1000);
+    }
 
     createGrid();
     startTimer();
-
-    document.getElementById('exit-button').addEventListener('click', () => {
-      location.reload();
-    });
   </script>
 </body>
 </html>
