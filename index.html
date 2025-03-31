@@ -2,14 +2,24 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>말롱이 우유게임 ✨</title>
   <style>
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       font-family: sans-serif;
       background: #f0f9ff;
       text-align: center;
-      margin: 0;
-      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
 
     #game-container {
@@ -20,14 +30,16 @@
     }
 
     #grid {
+      transform-origin: top left;
+      transform: scale(1.3);
       touch-action: none !important;
       -webkit-user-select: none;
       -webkit-touch-callout: none;
+      user-select: none;
       display: grid;
       grid-template-columns: repeat(10, 52px);
       grid-template-rows: repeat(17, 52px);
       gap: 5px;
-      user-select: none;
     }
 
     .cell {
@@ -80,152 +92,137 @@
 <body>
   <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 10px;">
     <div>
-      <h1>🥛 말롱이 우유게임 v.6 🥛</h1>
+      <h1>🥛 말롱이 우유게임ver.7 🥛</h1>
       <div id="score">점수: 0</div>
-      <div id="timer">남은 시간: 120초</div>
+      <div id="timer">남은 시간: 60초</div>
     </div>
     <div id="baby"></div>
   </div>
 
   <div id="game-container">
-    <button id="exit-button" style="position: absolute; top: -20px; right: -20px; z-index: 10; font-size: 24px; border: none; background: transparent; cursor: pointer;">❌</button>
     <div id="grid"></div>
   </div>
 
   <script>
-const grid = document.getElementById('grid');
-const baby = document.getElementById('baby');
-const scoreEl = document.getElementById('score');
-const timerEl = document.getElementById('timer');
-let cells = [];
-let isDragging = false;
-let startCell = null;
-let currentEndCell = null;
-let score = 0;
-let timeLeft = 60;
+    const grid = document.getElementById('grid');
+    const baby = document.getElementById('baby');
+    const scoreEl = document.getElementById('score');
+    const timerEl = document.getElementById('timer');
+    let cells = [];
+    let isDragging = false;
+    let startCell = null;
+    let currentEndCell = null;
+    let score = 0;
+    let timeLeft = 60;
 
-function createGrid() {
-  for (let i = 0; i < 170; i++) {
-    const cell = document.createElement('div');
-    cell.classList.add('cell');
+    function createGrid() {
+      for (let i = 0; i < 170; i++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
 
-    const value = Math.floor(Math.random() * 9) + 1;
-    cell.dataset.value = value;
-    cell.dataset.index = i;
+        const value = Math.floor(Math.random() * 9) + 1;
+        cell.dataset.value = value;
+        cell.dataset.index = i;
 
-    const img = document.createElement('img');
-    img.src = 'milk.png';
-    img.className = 'milk';
+        const img = document.createElement('img');
+        img.src = 'milk.png';
+        img.className = 'milk';
 
-    const circle = document.createElement('div');
-    circle.className = 'num-circle';
-    circle.innerHTML = `<span>${value}</span>`;
+        const circle = document.createElement('div');
+        circle.className = 'num-circle';
+        circle.innerHTML = `<span>${value}</span>`;
 
-    cell.appendChild(img);
-    cell.appendChild(circle);
+        cell.appendChild(img);
+        cell.appendChild(circle);
 
-    grid.appendChild(cell);
-    cells.push(cell);
-  }
-}
-
-function getRowCol(index) {
-  return { row: Math.floor(index / 10), col: index % 10 };
-}
-
-function selectBox(start, end) {
-  const startRC = getRowCol(start);
-  const endRC = getRowCol(end);
-  const minRow = Math.min(startRC.row, endRC.row);
-  const maxRow = Math.max(startRC.row, endRC.row);
-  const minCol = Math.min(startRC.col, endRC.col);
-  const maxCol = Math.max(startRC.col, endRC.col);
-  let selected = [];
-  for (let r = minRow; r <= maxRow; r++) {
-    for (let c = minCol; c <= maxCol; c++) {
-      const idx = r * 10 + c;
-      selected.push(cells[idx]);
+        grid.appendChild(cell);
+        cells.push(cell);
+      }
     }
-  }
-  return selected;
-}
 
-function clearSelection() {
-  cells.forEach(cell => cell.classList.remove('selected'));
-}
-
-function showSmile() {
-  baby.style.backgroundImage = "url('baby_smile.png')";
-  setTimeout(() => {
-    baby.style.backgroundImage = "url('baby_default.png')";
-  }, 1000);
-}
-
-function startTimer() {
-  const interval = setInterval(() => {
-    timeLeft--;
-    timerEl.textContent = `남은 시간: ${timeLeft}초`;
-    if (timeLeft <= 0) {
-      clearInterval(interval);
-      alert(`게임 종료! 당신의 점수는 ${score}점입니다.`);
+    function startTimer() {
+      const interval = setInterval(() => {
+        timeLeft--;
+        timerEl.textContent = `남은 시간: ${timeLeft}초`;
+        if (timeLeft <= 0) {
+          clearInterval(interval);
+          alert(`게임 종료! 당신의 점수는 ${score}점입니다.`);
+        }
+      }, 1000);
     }
-  }, 1000);
-}
 
-function getTouchCell(e) {
-  const touch = e.touches[0] || e.changedTouches[0];
-  const el = document.elementFromPoint(touch.clientX, touch.clientY);
-  return el ? el.closest('.cell') : null;
-}
+    function getRowCol(index) {
+      return { row: Math.floor(index / 10), col: index % 10 };
+    }
 
-grid.addEventListener('touchstart', (e) => {
-  e.preventDefault();
-  const target = getTouchCell(e);
-  if (!target) return;
-  isDragging = true;
-  startCell = parseInt(target.dataset.index);
-  currentEndCell = startCell;
-  clearSelection();
-});
+    function selectBox(start, end) {
+      const startRC = getRowCol(start);
+      const endRC = getRowCol(end);
+      const minRow = Math.min(startRC.row, endRC.row);
+      const maxRow = Math.max(startRC.row, endRC.row);
+      const minCol = Math.min(startRC.col, endRC.col);
+      const maxCol = Math.max(startRC.col, endRC.col);
+      let selected = [];
+      for (let r = minRow; r <= maxRow; r++) {
+        for (let c = minCol; c <= maxCol; c++) {
+          const idx = r * 10 + c;
+          selected.push(cells[idx]);
+        }
+      }
+      return selected;
+    }
 
-grid.addEventListener('touchmove', (e) => {
-  e.preventDefault();
-  if (!isDragging) return;
-  const target = getTouchCell(e);
-  if (!target) return;
-  currentEndCell = parseInt(target.dataset.index);
-  clearSelection();
-  const selected = selectBox(startCell, currentEndCell);
-  selected.forEach(cell => cell.classList.add('selected'));
-});
+    function clearSelection() {
+      cells.forEach(cell => cell.classList.remove('selected'));
+    }
 
-grid.addEventListener('touchend', (e) => {
-  e.preventDefault();
-  if (!isDragging) return;
-  const selected = selectBox(startCell, currentEndCell);
-  const sum = selected.reduce((acc, cell) => acc + parseInt(cell.dataset.value), 0);
-  if (sum === 10) {
-    showSmile();
-    score += selected.length;
-    scoreEl.textContent = `점수: ${score}`;
-    selected.forEach(cell => {
-      cell.dataset.value = 0;
-      cell.innerHTML = '';
+    function showSmile() {
+      baby.style.backgroundImage = "url('baby_smile.png')";
+      setTimeout(() => baby.style.backgroundImage = "url('baby_default.png')", 1000);
+    }
+
+    function getTouchCell(e) {
+      const touch = e.touches[0] || e.changedTouches[0];
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      return el ? el.closest('.cell') : null;
+    }
+
+    grid.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      const target = getTouchCell(e);
+      if (!target) return;
+      isDragging = true;
+      startCell = parseInt(target.dataset.index);
+      currentEndCell = startCell;
+      clearSelection();
     });
-  }
-  clearSelection();
-  isDragging = false;
-  startCell = null;
-  currentEndCell = null;
-});
 
-createGrid();
-startTimer();
+    grid.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      if (!isDragging) return;
+      const target = getTouchCell(e);
+      if (!target) return;
+      currentEndCell = parseInt(target.dataset.index);
+      clearSelection();
+      selectBox(startCell, currentEndCell).forEach(cell => cell.classList.add('selected'));
+    });
 
-document.getElementById('exit-button').addEventListener('click', () => {
-  location.reload();
-});
+    grid.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      if (!isDragging) return;
+      const selected = selectBox(startCell, currentEndCell);
+      if (selected.reduce((acc, cell) => acc + parseInt(cell.dataset.value), 0) === 10) {
+        showSmile();
+        score += selected.length;
+        scoreEl.textContent = `점수: ${score}`;
+        selected.forEach(cell => cell.innerHTML = '');
+      }
+      clearSelection();
+      isDragging = false;
+    });
 
+    createGrid();
+    startTimer();
   </script>
 </body>
 </html>
