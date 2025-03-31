@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>말롱이 우유게임 V10 ✨</title>
+  <title>말롱이 우유게임 v11 ✨</title>
   <style>
     html, body {
       height: 100%;
@@ -33,7 +33,7 @@
 
     #grid {
       transform-origin: center center;
-      transform: scale(0.5);
+      transform: scale(1.1);
       touch-action: none !important;
       -webkit-user-select: none;
       -webkit-touch-callout: none;
@@ -142,8 +142,6 @@
       }
     }
 
-    // 나머지 JavaScript는 동일
-
     function startTimer() {
       const interval = setInterval(() => {
         timeLeft--;
@@ -155,7 +153,57 @@
       }, 1000);
     }
 
-    // 기존 터치 이벤트 리스너 코드 유지
+    function getTouchCell(e) {
+      const touch = e.touches[0] || e.changedTouches[0];
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      return el ? el.closest('.cell') : null;
+    }
+
+    grid.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      const target = getTouchCell(e);
+      if (!target) return;
+      isDragging = true;
+      startCell = parseInt(target.dataset.index);
+      currentEndCell = startCell;
+      cells.forEach(cell => cell.classList.remove('selected'));
+    });
+
+    grid.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      if (!isDragging) return;
+      const target = getTouchCell(e);
+      if (!target) return;
+      currentEndCell = parseInt(target.dataset.index);
+      cells.forEach(cell => cell.classList.remove('selected'));
+      selectBox(startCell, currentEndCell).forEach(cell => cell.classList.add('selected'));
+    });
+
+    grid.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      if (!isDragging) return;
+      const selected = selectBox(startCell, currentEndCell);
+      const sum = selected.reduce((acc, cell) => acc + parseInt(cell.dataset.value), 0);
+      if (sum === 10) {
+        score += selected.length;
+        scoreEl.textContent = `점수: ${score}`;
+        selected.forEach(cell => cell.innerHTML = '');
+      }
+      cells.forEach(cell => cell.classList.remove('selected'));
+      isDragging = false;
+    });
+
+    function selectBox(start, end) {
+      const [startRow, startCol] = [Math.floor(start / 10), start % 10];
+      const [endRow, endCol] = [Math.floor(end / 10), end % 10];
+      const selected = [];
+      for (let r = Math.min(startRow, endRow); r <= Math.max(startRow, endRow); r++) {
+        for (let c = Math.min(startCol, endCol); c <= Math.max(startCol, endCol); c++) {
+          selected.push(cells[r * 10 + c]);
+        }
+      }
+      return selected;
+    }
 
     createGrid();
     startTimer();
