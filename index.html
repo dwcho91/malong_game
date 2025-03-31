@@ -80,7 +80,7 @@
 <body>
   <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 10px;">
     <div>
-      <h1>🥛 말롱이 우유게임 v.5 🥛</h1>
+      <h1>🥛 말롱이 우유게임 v.6 🥛</h1>
       <div id="score">점수: 0</div>
       <div id="timer">남은 시간: 120초</div>
     </div>
@@ -93,130 +93,139 @@
   </div>
 
   <script>
-    const grid = document.getElementById('grid');
-    const baby = document.getElementById('baby');
-    const scoreEl = document.getElementById('score');
-    const timerEl = document.getElementById('timer');
-    let cells = [];
-    let isDragging = false;
-    let startCell = null;
-    let score = 0;
-    let timeLeft = 120;
+const grid = document.getElementById('grid');
+const baby = document.getElementById('baby');
+const scoreEl = document.getElementById('score');
+const timerEl = document.getElementById('timer');
+let cells = [];
+let isDragging = false;
+let startCell = null;
+let currentEndCell = null;
+let score = 0;
+let timeLeft = 60;
 
-    function createGrid() {
-      for (let i = 0; i < 170; i++) {
-        const cell = document.createElement('div');
-        cell.classList.add('cell');
+function createGrid() {
+  for (let i = 0; i < 170; i++) {
+    const cell = document.createElement('div');
+    cell.classList.add('cell');
 
-        const value = Math.floor(Math.random() * 9) + 1;
-        cell.dataset.value = value;
-        cell.dataset.index = i;
+    const value = Math.floor(Math.random() * 9) + 1;
+    cell.dataset.value = value;
+    cell.dataset.index = i;
 
-        const img = document.createElement('img');
-        img.src = 'milk.png';
-        img.className = 'milk';
+    const img = document.createElement('img');
+    img.src = 'milk.png';
+    img.className = 'milk';
 
-        const circle = document.createElement('div');
-        circle.className = 'num-circle';
-        circle.innerHTML = `<span>${value}</span>`;
+    const circle = document.createElement('div');
+    circle.className = 'num-circle';
+    circle.innerHTML = `<span>${value}</span>`;
 
-        cell.appendChild(img);
-        cell.appendChild(circle);
+    cell.appendChild(img);
+    cell.appendChild(circle);
 
-        grid.appendChild(cell);
-        cells.push(cell);
-      }
+    grid.appendChild(cell);
+    cells.push(cell);
+  }
+}
+
+function getRowCol(index) {
+  return { row: Math.floor(index / 10), col: index % 10 };
+}
+
+function selectBox(start, end) {
+  const startRC = getRowCol(start);
+  const endRC = getRowCol(end);
+  const minRow = Math.min(startRC.row, endRC.row);
+  const maxRow = Math.max(startRC.row, endRC.row);
+  const minCol = Math.min(startRC.col, endRC.col);
+  const maxCol = Math.max(startRC.col, endRC.col);
+  let selected = [];
+  for (let r = minRow; r <= maxRow; r++) {
+    for (let c = minCol; c <= maxCol; c++) {
+      const idx = r * 10 + c;
+      selected.push(cells[idx]);
     }
+  }
+  return selected;
+}
 
-    function getRowCol(index) {
-      return { row: Math.floor(index / 10), col: index % 10 };
+function clearSelection() {
+  cells.forEach(cell => cell.classList.remove('selected'));
+}
+
+function showSmile() {
+  baby.style.backgroundImage = "url('baby_smile.png')";
+  setTimeout(() => {
+    baby.style.backgroundImage = "url('baby_default.png')";
+  }, 1000);
+}
+
+function startTimer() {
+  const interval = setInterval(() => {
+    timeLeft--;
+    timerEl.textContent = `남은 시간: ${timeLeft}초`;
+    if (timeLeft <= 0) {
+      clearInterval(interval);
+      alert(`게임 종료! 당신의 점수는 ${score}점입니다.`);
     }
+  }, 1000);
+}
 
-    function selectBox(start, end) {
-      const startRC = getRowCol(start);
-      const endRC = getRowCol(end);
-      const minRow = Math.min(startRC.row, endRC.row);
-      const maxRow = Math.max(startRC.row, endRC.row);
-      const minCol = Math.min(startRC.col, endRC.col);
-      const maxCol = Math.max(startRC.col, endRC.col);
-      let selected = [];
-      for (let r = minRow; r <= maxRow; r++) {
-        for (let c = minCol; c <= maxCol; c++) {
-          const idx = r * 10 + c;
-          selected.push(cells[idx]);
-        }
-      }
-      return selected;
-    }
+function getTouchCell(e) {
+  const touch = e.touches[0] || e.changedTouches[0];
+  const el = document.elementFromPoint(touch.clientX, touch.clientY);
+  return el ? el.closest('.cell') : null;
+}
 
-    function clearSelection() {
-      cells.forEach(cell => cell.classList.remove('selected'));
-    }
+grid.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  const target = getTouchCell(e);
+  if (!target) return;
+  isDragging = true;
+  startCell = parseInt(target.dataset.index);
+  currentEndCell = startCell;
+  clearSelection();
+});
 
-    function showSmile() {
-      baby.style.backgroundImage = "url('baby_smile.png')";
-      setTimeout(() => {
-        baby.style.backgroundImage = "url('baby_default.png')";
-      }, 1000);
-    }
+grid.addEventListener('touchmove', (e) => {
+  e.preventDefault();
+  if (!isDragging) return;
+  const target = getTouchCell(e);
+  if (!target) return;
+  currentEndCell = parseInt(target.dataset.index);
+  clearSelection();
+  const selected = selectBox(startCell, currentEndCell);
+  selected.forEach(cell => cell.classList.add('selected'));
+});
 
-    function startTimer() {
-      const interval = setInterval(() => {
-        timeLeft--;
-        timerEl.textContent = `남은 시간: ${timeLeft}초`;
-        if (timeLeft <= 0) {
-          clearInterval(interval);
-          alert(`게임 종료! 당신의 점수는 ${score}점입니다.`);
-        }
-      }, 1000);
-    }
-
-    grid.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
-      const target = e.target.closest('.cell');
-      if (!target) return;
-      isDragging = true;
-      startCell = parseInt(target.dataset.index);
-      clearSelection();
+grid.addEventListener('touchend', (e) => {
+  e.preventDefault();
+  if (!isDragging) return;
+  const selected = selectBox(startCell, currentEndCell);
+  const sum = selected.reduce((acc, cell) => acc + parseInt(cell.dataset.value), 0);
+  if (sum === 10) {
+    showSmile();
+    score += selected.length;
+    scoreEl.textContent = `점수: ${score}`;
+    selected.forEach(cell => {
+      cell.dataset.value = 0;
+      cell.innerHTML = '';
     });
+  }
+  clearSelection();
+  isDragging = false;
+  startCell = null;
+  currentEndCell = null;
+});
 
-    grid.addEventListener('pointermove', (e) => {
-      if (!isDragging) return;
-      e.preventDefault();
-      const target = document.elementFromPoint(e.clientX, e.clientY)?.closest('.cell');
-      if (!target) return;
-      clearSelection();
-      const endCell = parseInt(target.dataset.index);
-      const selected = selectBox(startCell, endCell);
-      selected.forEach(cell => cell.classList.add('selected'));
-    });
+createGrid();
+startTimer();
 
-    grid.addEventListener('pointerup', (e) => {
-      e.preventDefault();
-      const target = e.target.closest('.cell');
-      if (!target) return;
-      const endCell = parseInt(target.dataset.index);
-      const selected = selectBox(startCell, endCell);
-      const sum = selected.reduce((acc, cell) => acc + parseInt(cell.dataset.value), 0);
-      if (sum === 10) {
-        showSmile();
-        score += selected.length;
-        scoreEl.textContent = `점수: ${score}`;
-        selected.forEach(cell => {
-          cell.dataset.value = 0;
-          cell.innerHTML = '';
-        });
-      }
-      clearSelection();
-      isDragging = false;
-    });
+document.getElementById('exit-button').addEventListener('click', () => {
+  location.reload();
+});
 
-    createGrid();
-    startTimer();
-
-    document.getElementById('exit-button').addEventListener('click', () => {
-      location.reload();
-    });
   </script>
 </body>
 </html>
