@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=0.7, user-scalable=no">
-  <title>말롱이 우유게임 v16 ✨</title>
+  <title>말롱이 우유게임 v18 ✨</title>
   <style>
     html, body {
       height: 100%;
@@ -32,22 +32,26 @@
     }
 
     #grid {
-      transform-origin: center center;
-      transform: scale(0.9);
       touch-action: none !important;
       -webkit-user-select: none;
       -webkit-touch-callout: none;
       user-select: none;
       display: grid;
-      grid-template-columns: repeat(10, 52px);
-      grid-template-rows: repeat(17, 52px);
-      gap: 2px;
+      grid-template-columns: repeat(10, 1fr);
+      grid-template-rows: repeat(17, 1fr);
+      gap: 3px;
+      width: 100vw;
+      max-width: 520px;
+      height: calc(100vh - 220px);
+      margin: 0 auto;
+      padding: 5px;
+      box-sizing: border-box;
     }
 
     .cell {
       position: relative;
-      width: 52px;
-      height: 52px;
+      width: 100px;
+      height: 100px;
     }
 
     .milk {
@@ -96,7 +100,7 @@
     <div>
       <h1>🥛 말롱이 우유게임 🥛</h1>
       <div id="score">점수: 0</div>
-      <div id="timer">남은 시간: 60초</div>
+      <div id="timer">남은 시간: 120초</div>
     </div>
     <div id="baby"></div>
   </div>
@@ -115,7 +119,7 @@
     let startCell = null;
     let currentEndCell = null;
     let score = 0;
-    let timeLeft = 60;
+    let timeLeft = 120;
 
     function createGrid() {
       for (let i = 0; i < 170; i++) {
@@ -193,7 +197,10 @@
         showSmile();
         score += selected.length;
         scoreEl.textContent = `점수: ${score}`;
-        selected.forEach(cell => cell.innerHTML = '');
+        selected.forEach(cell => {
+          cell.dataset.value = 0;
+          cell.innerHTML = '';
+      });
       }
       cells.forEach(cell => cell.classList.remove('selected'));
       isDragging = false;
