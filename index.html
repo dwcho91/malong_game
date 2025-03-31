@@ -85,7 +85,9 @@
     <div id="baby"></div>
   </div>
 
-  <div id="game-container">
+  <button id="start-button" style="margin: 20px; padding: 12px 24px; font-size: 18px; border: none; border-radius: 8px; background-color: #4dabf7; color: white; cursor: pointer;">게임 시작</button>
+  <div id="game-container" style="display: none; position: relative;">
+    <button id="exit-button" style="position: absolute; top: -20px; right: -20px; z-index: 10; font-size: 24px; border: none; background: transparent; cursor: pointer;">❌</button>
     <div id="grid"></div>
   </div>
 
@@ -207,8 +209,72 @@
       }, 1000);
     }
 
-    createGrid();
-    startTimer();
-  </script>
+    // 게임 시작은 버튼 클릭으로 이동
+
+// 모바일 터치 이벤트 대응
+grid.addEventListener('touchstart', (e) => {
+  const touch = e.touches[0];
+  const target = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.cell');
+  if (!target) return;
+  isDragging = true;
+  startCell = parseInt(target.dataset.index);
+  lastTouchedIndex = startCell;
+  clearSelection();
+});
+
+grid.addEventListener('touchmove', (e) => {
+  if (!isDragging) return;
+  const touch = e.touches[0];
+  const target = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.cell');
+  if (!target) return;
+  clearSelection();
+  const endCell = parseInt(target.dataset.index);
+  const selected = selectBox(startCell, endCell);
+  selected.forEach(cell => cell.classList.add('selected'));
+});
+
+grid.addEventListener('touchend', (e) => {
+  if (!isDragging) return;
+  const touch = e.changedTouches[0];
+  const target = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.cell');
+  if (!target) return;
+  const endCell = parseInt(target.dataset.index);
+  const selected = selectBox(startCell, endCell);
+  const sum = selected.reduce((acc, cell) => acc + parseInt(cell.dataset.value), 0);
+  if (sum === 10) {
+    showSmile();
+    score += selected.length;
+    scoreEl.textContent = `점수: ${score}`;
+    selected.forEach(cell => {
+      cell.dataset.value = 0;
+      cell.innerHTML = '';
+    });
+  }
+  clearSelection();
+  isDragging = false;
+  lastTouchedIndex = null;
+});
+  document.getElementById('start-button').addEventListener('click', () => {
+  const gameContainer = document.getElementById('game-container');
+  const startBtn = document.getElementById('start-button');
+
+  if (document.documentElement.requestFullscreen) {
+    document.documentElement.requestFullscreen().catch(() => {
+      alert('전체화면 진입 실패. 일반 모드로 실행됩니다.');
+    });
+  }
+
+  createGrid();
+  startTimer();
+  gameContainer.style.display = 'flex';
+  startBtn.style.display = 'none';
+});
+document.getElementById('exit-button').addEventListener('click', () => {
+  if (document.exitFullscreen) {
+    document.exitFullscreen();
+  }
+  location.reload();
+});
+</script>
 </body>
 </html>
