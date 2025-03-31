@@ -163,6 +163,7 @@
       if (!target) return;
       isDragging = true;
       startCell = parseInt(target.dataset.index);
+      lastTouchedIndex = startCell;
       clearSelection();
     });
 
@@ -188,21 +189,11 @@
         selected.forEach(cell => {
         cell.dataset.value = 0;
         cell.innerHTML = '';
-
-        const img = document.createElement('img');
-        img.src = 'milk.png';
-        img.className = 'milk';
-
-        const circle = document.createElement('div');
-        circle.className = 'num-circle';
-        circle.innerHTML = `<span>0</span>`;
-
-        cell.appendChild(img);
-        cell.appendChild(circle);
       });
       }
       clearSelection();
       isDragging = false;
+      lastTouchedIndex = null;
     });
 
     function startTimer() {
@@ -218,50 +209,6 @@
 
     createGrid();
     startTimer();
-
-    // 모바일 터치 이벤트 대응
-    grid.addEventListener('touchstart', (e) => {
-      const touch = e.touches[0];
-      const target = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.cell');
-      if (!target) return;
-      isDragging = true;
-      startCell = parseInt(target.dataset.index);
-      clearSelection();
-    });
-
-    grid.addEventListener('touchmove', (e) => {
-      if (!isDragging) return;
-      const touch = e.touches[0];
-      const target = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.cell');
-      if (!target) return;
-      clearSelection();
-      const endCell = parseInt(target.dataset.index);
-      lastTouchedIndex = endCell;
-      const selected = selectBox(startCell, endCell);
-      selected.forEach(cell => cell.classList.add('selected'));
-    });
-
-    grid.addEventListener('touchend', (e) => {
-      if (!isDragging) return;
-      const touch = e.changedTouches[0];
-      let target = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.cell');
-      let endCell = target ? parseInt(target.dataset.index) : lastTouchedIndex;
-      if (endCell == null) return;
-      const selected = selectBox(startCell, endCell);
-      const sum = selected.reduce((acc, cell) => acc + parseInt(cell.dataset.value), 0);
-      if (sum === 10) {
-        showSmile();
-        score += selected.length;
-        scoreEl.textContent = `점수: ${score}`;
-        selected.forEach(cell => {
-          cell.dataset.value = 0;
-          cell.innerHTML = '';
-        });
-      }
-      clearSelection();
-      isDragging = false;
-      lastTouchedIndex = null;
-    });
   </script>
 </body>
 </html>
