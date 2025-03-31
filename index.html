@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=0.7, user-scalable=no">
-  <title>말롱이 우유게임 v18 ✨</title>
+  <title>말롱이 우유게임 v19 ✨</title>
   <style>
     html, body {
       height: 100%;
@@ -24,11 +24,13 @@
     }
 
     #game-container {
+      flex: 1;
       display: flex;
       justify-content: center;
       gap: 2px;
       position: relative;
       margin-top: 1px;
+      width: 100%;
     }
 
     #grid {
@@ -39,11 +41,10 @@
       display: grid;
       grid-template-columns: repeat(10, 1fr);
       grid-template-rows: repeat(17, 1fr);
-      gap: 3px;
-      width: 100vw;
+      gap: 2px;
+      width: 100%;
       max-width: 520px;
-      height: calc(100vh - 220px);
-      margin: 0 auto;
+      height: 100%;
       padding: 5px;
       box-sizing: border-box;
     }
@@ -63,7 +64,7 @@
       position: absolute;
       top: 50%;
       left: 50%;
-      transform: translate(-50%, -50%);
+      transform: translate(-20%, -20%);
       width: 28px;
       height: 28px;
       background: rgba(255, 255, 255, 0.8);
