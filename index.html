@@ -204,13 +204,63 @@
 
     createGrid();
     startTimer();
+
+    // 모바일 터치 이벤트 대응
+    grid.addEventListener('touchstart', (e) => {
+      const touch = e.touches[0];
+      const target = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.cell');
+      if (!target) return;
+      isDragging = true;
+      startCell = parseInt(target.dataset.index);
+      clearSelection();
+    });
+
+    grid.addEventListener('touchmove', (e) => {
+      if (!isDragging) return;
+      const touch = e.touches[0];
+      const target = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.cell');
+      if (!target) return;
+      clearSelection();
+      const endCell = parseInt(target.dataset.index);
+      const selected = selectBox(startCell, endCell);
+      selected.forEach(cell => cell.classList.add('selected'));
+    });
+
+    grid.addEventListener('touchend', (e) => {
+      if (!isDragging) return;
+      const touch = e.changedTouches[0];
+      const target = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.cell');
+      if (!target) return;
+      const endCell = parseInt(target.dataset.index);
+      const selected = selectBox(startCell, endCell);
+      const sum = selected.reduce((acc, cell) => acc + parseInt(cell.dataset.value), 0);
+      if (sum === 10) {
+        showSmile();
+        score += selected.length;
+        scoreEl.textContent = `점수: ${score}`;
+        selected.forEach(cell => {
+          cell.dataset.value = 0;
+          cell.innerHTML = '';
+        });
+      }
+      clearSelection();
+      isDragging = false;
+    });
   function rotateScreen() {
   if (screen.orientation && screen.orientation.lock) {
-    const current = screen.orientation.type;
-    const target = current.startsWith('portrait') ? 'landscape' : 'portrait';
-    screen.orientation.lock(target).catch(err => {
-      alert('화면 회전은 이 기기에서 지원되지 않습니다.');
+    document.documentElement.requestFullscreen().then(() => {
+      const current = screen.orientation.type;
+      const target = current.startsWith('portrait') ? 'landscape' : 'portrait';
+      screen.orientation.lock(target).catch(err => {
+        alert('화면 회전은 이 기기에서 지원되지 않습니다.');
+      });
+    }).catch(() => {
+      alert('전체화면 진입이 실패했습니다.');
     });
+  } else {
+    alert('이 브라우저는 화면 회전 API를 지원하지 않습니다.');
+  }
+});
   } else {
     alert('이 브라우저는 화면 회전 API를 지원하지 않습니다.');
   }
