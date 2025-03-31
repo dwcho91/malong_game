@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=0.6, user-scalable=no">
-  <title>말롱이 우유게임 v24 ✨</title>
+  <title>말롱이 우유게임 v25 ✨</title>
   <style>
     html, body {
       height: 100%;
@@ -97,6 +97,10 @@
   </style>
 </head>
 <body>
+  <!-- 🎵 오디오 요소 추가 -->
+  <audio id="bgm" src="assets/malong_song.MP4" loop></audio>
+  <audio id="baby-sound" src="assets/baby_effect.mp3"></audio>
+
   <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
     <div>
       <h1>🥛 말롱이 우유게임 🥛</h1>
@@ -160,7 +164,14 @@
 
     function showSmile() {
       baby.style.backgroundImage = "url('baby_smile.png')";
+      playBabySound(); // ✅ 효과음 재생 추가
       setTimeout(() => baby.style.backgroundImage = "url('baby_default.png')", 1000);
+    }
+
+    function playBabySound() {
+      const sound = document.getElementById("baby-sound");
+      sound.currentTime = 0;
+      sound.play();
     }
 
     function getTouchCell(e) {
@@ -201,7 +212,7 @@
         selected.forEach(cell => {
           cell.dataset.value = 0;
           cell.innerHTML = '';
-      });
+        });
       }
       cells.forEach(cell => cell.classList.remove('selected'));
       isDragging = false;
@@ -218,6 +229,23 @@
       }
       return selected;
     }
+
+    // ✅ BGM 자동 재생 대응
+    let bgmStarted = false;
+    function tryStartBGM() {
+      if (!bgmStarted) {
+        const bgm = document.getElementById("bgm");
+        bgm.volume = 0.5;
+        bgm.play().catch(e => {
+          console.warn("BGM autoplay blocked:", e);
+        });
+        bgmStarted = true;
+      }
+    }
+
+    // 사용자 첫 터치나 클릭에 반응해서 BGM 재생 시도
+    document.body.addEventListener('touchstart', tryStartBGM, { once: true });
+    document.body.addEventListener('mousedown', tryStartBGM, { once: true });
 
     createGrid();
     startTimer();
