@@ -186,9 +186,20 @@
         score += selected.length;
         scoreEl.textContent = `점수: ${score}`;
         selected.forEach(cell => {
-          cell.dataset.value = 0;
-          cell.innerHTML = '';
-        });
+        cell.dataset.value = 0;
+        cell.innerHTML = '';
+
+        const img = document.createElement('img');
+        img.src = 'milk.png';
+        img.className = 'milk';
+
+        const circle = document.createElement('div');
+        circle.className = 'num-circle';
+        circle.innerHTML = `<span>0</span>`;
+
+        cell.appendChild(img);
+        cell.appendChild(circle);
+      });
       }
       clearSelection();
       isDragging = false;
