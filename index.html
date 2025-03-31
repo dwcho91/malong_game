@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=0.7, user-scalable=no">
-  <title>말롱이 우유게임 v14 ✨</title>
+  <title>말롱이 우유게임 v15 ✨</title>
   <style>
     html, body {
       height: 100%;
@@ -158,7 +158,31 @@
       setTimeout(() => baby.style.backgroundImage = "url('baby_default.png')", 1000);
     }
 
-    // 기존의 getTouchCell, touchstart, touchmove 이벤트 코드는 그대로 유지하세요.
+    function getTouchCell(e) {
+      const touch = e.touches[0] || e.changedTouches[0];
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      return el ? el.closest('.cell') : null;
+    }
+
+    grid.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      const target = getTouchCell(e);
+      if (!target) return;
+      isDragging = true;
+      startCell = parseInt(target.dataset.index);
+      currentEndCell = startCell;
+      cells.forEach(cell => cell.classList.remove('selected'));
+    });
+
+    grid.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      if (!isDragging) return;
+      const target = getTouchCell(e);
+      if (!target) return;
+      currentEndCell = parseInt(target.dataset.index);
+      cells.forEach(cell => cell.classList.remove('selected'));
+      selectBox(startCell, currentEndCell).forEach(cell => cell.classList.add('selected'));
+    });
 
     grid.addEventListener('touchend', (e) => {
       e.preventDefault();
@@ -166,7 +190,6 @@
       const selected = selectBox(startCell, currentEndCell);
       const sum = selected.reduce((acc, cell) => acc + parseInt(cell.dataset.value), 0);
       if (sum === 10) {
-        showSmile();
         score += selected.length;
         scoreEl.textContent = `점수: ${score}`;
         selected.forEach(cell => cell.innerHTML = '');
