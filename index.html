@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=0.6, user-scalable=no">
-  <title>말롱이 우유게임 v25 ✨</title>
+  <title>말롱이 우유게임 v26 ✨</title>
   <style>
     html, body {
       height: 100%;
@@ -94,10 +94,36 @@
       font-size: 20px;
       margin: 5px;
     }
+
+    #best-bubble {
+      position: absolute;
+      top: 0;
+      left: 110%;
+      background: #fffbea;
+      border: 2px solid #ffd54f;
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 14px;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+      text-align: center;
+      min-width: 80px;
+    }
+
+    .bubble-title {
+      font-weight: bold;
+      font-size: 13px;
+      margin-bottom: 4px;
+      color: #ff9800;
+    }
+
+    #best-score {
+      font-size: 16px;
+      font-weight: bold;
+      color: #333;
+    }
   </style>
 </head>
 <body>
-  <!-- 🎵 오디오 요소 추가 -->
   <audio id="bgm" src="malong_song.MP4" loop></audio>
   <audio id="baby-sound" src="baby_effect.mp3"></audio>
 
@@ -107,7 +133,13 @@
       <div id="score">점수: 0</div>
       <div id="timer">남은 시간: 120초</div>
     </div>
-    <div id="baby"></div>
+    <div style="position: relative;">
+      <div id="baby"></div>
+      <div id="best-bubble">
+        <div class="bubble-title">Best Record</div>
+        <div id="best-score">0점</div>
+      </div>
+    </div>
   </div>
 
   <div id="game-container">
@@ -125,6 +157,10 @@
     let currentEndCell = null;
     let score = 0;
     let timeLeft = 120;
+
+    // Best score 초기화
+    let bestScore = localStorage.getItem("bestScore") || 0;
+    document.getElementById("best-score").textContent = `${bestScore}점`;
 
     function createGrid() {
       for (let i = 0; i < 170; i++) {
@@ -164,7 +200,7 @@
 
     function showSmile() {
       baby.style.backgroundImage = "url('baby_smile.png')";
-      playBabySound(); // ✅ 효과음 재생 추가
+      playBabySound();
       setTimeout(() => baby.style.backgroundImage = "url('baby_default.png')", 1000);
     }
 
@@ -172,6 +208,15 @@
       const sound = document.getElementById("baby-sound");
       sound.currentTime = 0;
       sound.play();
+    }
+
+    function updateScoreDisplay() {
+      scoreEl.textContent = `점수: ${score}`;
+      if (score > bestScore) {
+        bestScore = score;
+        localStorage.setItem("bestScore", bestScore);
+        document.getElementById("best-score").textContent = `${bestScore}점`;
+      }
     }
 
     function getTouchCell(e) {
@@ -208,7 +253,7 @@
       if (sum === 10) {
         showSmile();
         score += selected.length;
-        scoreEl.textContent = `점수: ${score}`;
+        updateScoreDisplay();
         selected.forEach(cell => {
           cell.dataset.value = 0;
           cell.innerHTML = '';
@@ -243,7 +288,6 @@
       }
     }
 
-    // 사용자 첫 터치나 클릭에 반응해서 BGM 재생 시도
     document.body.addEventListener('touchstart', tryStartBGM, { once: true });
     document.body.addEventListener('mousedown', tryStartBGM, { once: true });
 
