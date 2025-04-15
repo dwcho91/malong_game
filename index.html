@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=0.6, user-scalable=no">
-  <title>말롱이 우유게임 v26 ✨</title>
+  <title>말롱이 우유게임 v27 ✨</title>
   <style>
     html, body {
       height: 100%;
@@ -121,6 +121,39 @@
       font-weight: bold;
       color: #333;
     }
+
+    #popup {
+      position: fixed;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border: 3px solid #4dabf7;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 4px 4px 10px rgba(0,0,0,0.2);
+      display: none;
+      z-index: 999;
+    }
+
+    #popup p {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    #restart-btn {
+      background-color: #4dabf7;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    #restart-btn:hover {
+      background-color: #339af0;
+    }
   </style>
 </head>
 <body>
@@ -146,19 +179,29 @@
     <div id="grid"></div>
   </div>
 
+  <!-- 게임 종료 팝업 -->
+  <div id="popup">
+    <p id="popup-message">게임 종료! 당신의 점수는 0점입니다.</p>
+    <button id="restart-btn">다시 시작</button>
+  </div>
+
   <script>
     const grid = document.getElementById('grid');
     const baby = document.getElementById('baby');
     const scoreEl = document.getElementById('score');
     const timerEl = document.getElementById('timer');
+    const popup = document.getElementById('popup');
+    const popupMessage = document.getElementById('popup-message');
+    const restartBtn = document.getElementById('restart-btn');
+
     let cells = [];
     let isDragging = false;
     let startCell = null;
     let currentEndCell = null;
     let score = 0;
     let timeLeft = 120;
+    let timer = null;
 
-    // Best score 초기화
     let bestScore = localStorage.getItem("bestScore") || 0;
     document.getElementById("best-score").textContent = `${bestScore}점`;
 
@@ -188,14 +231,35 @@
     }
 
     function startTimer() {
-      const interval = setInterval(() => {
+      timer = setInterval(() => {
         timeLeft--;
         timerEl.textContent = `남은 시간: ${timeLeft}초`;
         if (timeLeft <= 0) {
-          clearInterval(interval);
-          alert(`게임 종료! 당신의 점수는 ${score}점입니다.`);
+          clearInterval(timer);
+          endGame();
         }
       }, 1000);
+    }
+
+    function endGame() {
+      popupMessage.textContent = `게임 종료! 당신의 점수는 ${score}점입니다.`;
+      popup.style.display = 'block';
+    }
+
+    restartBtn.addEventListener('click', () => {
+      popup.style.display = 'none';
+      resetGame();
+    });
+
+    function resetGame() {
+      score = 0;
+      timeLeft = 120;
+      scoreEl.textContent = `점수: ${score}`;
+      timerEl.textContent = `남은 시간: ${timeLeft}초`;
+      grid.innerHTML = '';
+      cells = [];
+      createGrid();
+      startTimer();
     }
 
     function showSmile() {
@@ -275,15 +339,13 @@
       return selected;
     }
 
-    // ✅ BGM 자동 재생 대응
+    // BGM 자동 재생
     let bgmStarted = false;
     function tryStartBGM() {
       if (!bgmStarted) {
         const bgm = document.getElementById("bgm");
         bgm.volume = 0.5;
-        bgm.play().catch(e => {
-          console.warn("BGM autoplay blocked:", e);
-        });
+        bgm.play().catch(e => console.warn("BGM autoplay blocked:", e));
         bgmStarted = true;
       }
     }
